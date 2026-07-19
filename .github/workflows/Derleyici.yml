@@ -1,0 +1,72 @@
+# İlk workflow yapısı @keyiflerolsun / @KekikAkademi çalışmasına dayanır.
+name: CloudStream Derleyici
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - "**/*.md"
+      - "**/*.jpg"
+      - "**/*.png"
+      - "**/*.py"
+
+permissions:
+  contents: write
+
+jobs:
+  CloudStreamDerleyici:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Kaynak dalını kontrol et
+        uses: actions/checkout@v6
+        with:
+          path: src
+
+      - name: Builds dalını kontrol et
+        uses: actions/checkout@v6
+        with:
+          ref: builds
+          path: builds
+
+      - name: Eski CS3 derlemelerini temizle
+        run: rm -f "$GITHUB_WORKSPACE"/builds/*.cs3
+
+      - name: JDK 17 ayarla
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Gradle ayarla
+        uses: gradle/actions/setup-gradle@v5
+        with:
+          cache-read-only: false
+
+      - name: Eklentileri derle
+        run: |
+          cd "$GITHUB_WORKSPACE/src"
+          chmod +x gradlew
+          ./gradlew make makePluginsJson
+          cp */build/*.cs3 "$GITHUB_WORKSPACE/builds/"
+          cp build/plugins.json "$GITHUB_WORKSPACE/builds/plugins.json"
+          cp repo.json "$GITHUB_WORKSPACE/builds/repo.json"
+
+      - name: Derlemeleri builds dalına yükle
+        run: |
+          cd "$GITHUB_WORKSPACE/builds"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add .
+          if git diff --cached --quiet; then
+            echo "Yüklenecek yeni değişiklik yok."
+            exit 0
+          fi
+          git commit -m "Build ${GITHUB_SHA}"
+          git push
