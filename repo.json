@@ -1,0 +1,8 @@
+{
+  "name": "Brosvod CS3",
+  "description": "CloudStream için Türkçe içerik sağlayıcıları",
+  "manifestVersion": 1,
+  "pluginLists": [
+    "https://raw.githubusercontent.com/perfecplay/Brosvod-CS3/refs/heads/builds/plugins.json"
+  ]
+}
