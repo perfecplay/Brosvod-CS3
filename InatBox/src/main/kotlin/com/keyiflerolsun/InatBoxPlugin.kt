@@ -12,5 +12,6 @@ class InatBoxPlugin: Plugin() {
         registerExtractorAPI(Vk())
         registerExtractorAPI(DzenRu())
         registerExtractorAPI(CDNJWPlayer())
+        registerExtractorAPI(FilmizleeeeeExtractor())
     }
 }

@@ -40,7 +40,7 @@ import org.json.JSONException
 import org.json.JSONObject
 
 class InatBox : MainAPI() {
-    private val contentUrl = "https://diziboxen.help/CDN/001/002/dizibox"
+    private val contentUrl = "https://static.staticsave.com/fast/ct.js"
 
     override var name = "InatBox"
     override val hasMainPage = true
@@ -53,43 +53,55 @@ class InatBox : MainAPI() {
     private val aesKey = "ywevqtjrurkwtqgz" //Master secret and iv key
 
     override val mainPage = mainPageOf(
-        "${contentUrl}/tv/list1.php"              to "Spor ve Kanallar",
-        "${contentUrl}/tv/list2.php"              to "Kanallar Liste 2",
-        "${contentUrl}/tv/sinema.php"             to "Sinema Kanalları",
-        "${contentUrl}/tv/belgesel.php"           to "Belgesel Kanalları",
-        "${contentUrl}/tv/ulusal.php"             to "Ulusal Kanallar",
-        "${contentUrl}/tv/haber.php"              to "Haber Kanalları",
-        "${contentUrl}/tv/cocuk.php"              to "Çocuk Kanalları",
-        "${contentUrl}/tv/dini.php"               to "Dini Kanallar",
-        "${contentUrl}/ex/index.php"              to "EXXEN",
-        "${contentUrl}/ga/index.php"              to "Gain",
-        "${contentUrl}/nf/index.php"              to "Netflix",
-        "${contentUrl}/dsny/index.php"            to "Disney+",
-        "${contentUrl}/amz/index.php"             to "Amazon Prime",
-        "${contentUrl}/hb/index.php"              to "HBO Max",
-        "${contentUrl}/tbi/index.php"             to "Tabii",
-        "${contentUrl}/film/mubi.php"             to "Mubi",
-        "${contentUrl}/yabanci-dizi/index.php"    to "Yabancı Diziler",
-        "${contentUrl}/yerli-dizi/index.php"      to "Yerli Diziler",
-        "${contentUrl}/film/yerli-filmler.php"    to "Yerli Filmler",
-        "${contentUrl}/film/4k-film-exo.php"      to "4K Film İzle | Exo"
+        contentUrl to "İnatBox"
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val jsonResponse =
-            makeInatRequest(request.data) ?: return newHomePageResponse(request.name, emptyList())
+        val mainResponse = runCatching { app.get(request.data) }.getOrNull()
+            ?: return newHomePageResponse(request.name, emptyList())
 
-        val searchResults = getSearchResponseList(jsonResponse)
-
-        for (searchResponse in searchResults) {
-            val url = searchResponse.url
-            if (!urlToSearchResponse.containsKey(url)) {
-                urlToSearchResponse[url] = searchResponse
-            }
+        if (!mainResponse.isSuccessful) {
+            return newHomePageResponse(request.name, emptyList())
         }
 
-        // Return a HomePageResponse with the parsed results
-        return newHomePageResponse(request.name, searchResults)
+        val encrypted = mainResponse.text
+        val parts = encrypted.split(":", limit = 2)
+        val responseKey = parts.getOrNull(1)?.trim().orEmpty().ifBlank { aesKey }
+        val categoriesJson = getJsonFromEncryptedInatResponse(encrypted, responseKey)
+            ?: return newHomePageResponse(request.name, emptyList())
+
+        val allResults = mutableListOf<SearchResponse>()
+        val categories = runCatching { JSONArray(categoriesJson) }.getOrNull()
+            ?: return newHomePageResponse(request.name, emptyList())
+
+        for (index in 0 until categories.length()) {
+            val category = categories.optJSONObject(index) ?: continue
+            val categoryName = category.optString("catName")
+            val categoryType = category.optString("catType")
+            val categoryUrl = category.optString("catUrl")
+
+            if (categoryUrl.isBlank() ||
+                categoryType.equals("link", ignoreCase = true) ||
+                categoryType.equals("destek", ignoreCase = true) ||
+                categoryName.equals("Hata Bildir", ignoreCase = true) ||
+                categoryName.equals("Derbiler", ignoreCase = true) ||
+                categoryUrl.contains("4k-film-exo.php", ignoreCase = true) ||
+                categoryUrl.contains("destek_mode", ignoreCase = true) ||
+                categoryUrl.contains("inattv", ignoreCase = true) ||
+                categoryUrl.contains("x.com/", ignoreCase = true)
+            ) continue
+
+            val categoryKey = category.optString("catSha").ifBlank { aesKey }
+            val categoryJson = runCatching {
+                makeInatRequestWithKey(categoryUrl, categoryKey)
+            }.getOrNull() ?: continue
+
+            allResults += getSearchResponseList(categoryJson)
+        }
+
+        val uniqueResults = allResults.distinctBy { "${it.name}|${it.url}" }
+        uniqueResults.forEach { urlToSearchResponse[it.url] = it }
+        return newHomePageResponse(request.name, uniqueResults)
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
@@ -141,9 +153,9 @@ class InatBox : MainAPI() {
             item.getString("diziName")
             val type = item.getString("diziType")
 
-            return when (type) {
-                "dizi", "dizi_mode" -> parseTvSeriesResponse(item)
-                "film", "film_mode" -> parseMovieResponse(item)
+            return when {
+                type.contains("dizi", ignoreCase = true) -> parseTvSeriesResponse(item)
+                type.contains("film", ignoreCase = true) -> parseMovieResponse(item)
                 else -> null
             }
 
@@ -151,9 +163,10 @@ class InatBox : MainAPI() {
             item.getString("chName")
             val chType = item.getString("chType")
 
-            val loadResponse = when (chType) {
-                "live_url", "cable_sh" -> parseLiveStreamLoadResponse(item)
-                "tekli_regex_lb_sh_3" -> parseLiveSportsStreamLoadResponse(item)
+            val loadResponse = when {
+                chType.contains("SsprDrm", ignoreCase = true) -> parseLiveSportsStreamLoadResponse(item)
+                chType.contains("live", ignoreCase = true) || chType.contains("cable", ignoreCase = true) -> parseLiveStreamLoadResponse(item)
+                chType.contains("tekli", ignoreCase = true) -> parseLiveSportsStreamLoadResponse(item)
                 else -> parseMovieResponse(item)
             }
             return loadResponse
@@ -170,6 +183,25 @@ class InatBox : MainAPI() {
     ): Boolean {
         Log.d("InatBox", "data: $data")
         return try {
+            val single = runCatching { JSONObject(data) }.getOrNull()
+            if (single?.optString("chType")?.contains("SsprDrm", ignoreCase = true) == true) {
+                val raw = single.optString("chUrl")
+                val streamId = raw.substringAfterLast('/').substringBefore('?').substringBefore('.')
+                if (streamId.isNotBlank()) {
+                    callback(
+                        newExtractorLink(
+                            source = "Ssport",
+                            name = single.optString("chName", "Ssport"),
+                            url = "https://sspplus.redzones.icu/CDN/SSP/txt/$streamId.m3u8",
+                            type = ExtractorLinkType.M3U8
+                        ) {
+                            this.referer = "https://google.com/"
+                            this.quality = Qualities.Unknown.value
+                        }
+                    )
+                    return true
+                }
+            }
             if (data.startsWith("[")) {
                 val chContentJsonArray = JSONArray(data)
                 for (i in 0 until chContentJsonArray.length()) {
@@ -434,7 +466,10 @@ class InatBox : MainAPI() {
         }
     }
 
-    private suspend fun makeInatRequest(url: String): String? {
+    private suspend fun makeInatRequest(url: String): String? =
+        makeInatRequestWithKey(url, aesKey)
+
+    private suspend fun makeInatRequestWithKey(url: String, requestKey: String): String? {
         // Extract hostname using URI
         val hostName = try {
             URI(url).host ?: throw IllegalArgumentException("Invalid URL: $url")
@@ -452,7 +487,7 @@ class InatBox : MainAPI() {
             "X-Requested-With" to "com.bp.box"
         )
 
-        val requestBody = "1=${aesKey}&0=${aesKey}"
+        val requestBody = "1=${requestKey}&0=${requestKey}"
 
         val interceptor = Interceptor { chain ->
             val request = chain.request()
@@ -470,27 +505,28 @@ class InatBox : MainAPI() {
         if (response.isSuccessful) {
             val encryptedResponse = response.body.string()
             // Log.d("InatBox", "Encrypted response: ${encryptedResponse}")
-            return getJsonFromEncryptedInatResponse(encryptedResponse)
+            return getJsonFromEncryptedInatResponse(encryptedResponse, requestKey)
         } else {
             Log.e("InatBox", "Request failed")
             return null
         }
     }
 
-    private fun getJsonFromEncryptedInatResponse(response: String): String? {
+    private fun getJsonFromEncryptedInatResponse(response: String, key: String = aesKey): String? {
         try {
             val algorithm = "AES/CBC/PKCS5Padding"
-            val keySpec = SecretKeySpec(aesKey.toByteArray(), "AES")
+            val keyBytes = key.toByteArray()
+            val keySpec = SecretKeySpec(keyBytes, "AES")
 
             // First decryption iteration
             val cipher1 = Cipher.getInstance(algorithm)
-            cipher1.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(aesKey.toByteArray()))
+            cipher1.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(keyBytes))
             val firstIterationData =
                 cipher1.doFinal(Base64.decode(response.split(":")[0], Base64.DEFAULT))
 
             // Second decryption iteration
             val cipher2 = Cipher.getInstance(algorithm)
-            cipher2.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(aesKey.toByteArray()))
+            cipher2.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(keyBytes))
             val secondIterationData = cipher2.doFinal(
                 Base64.decode(
                     String(firstIterationData).split(":")[0],
