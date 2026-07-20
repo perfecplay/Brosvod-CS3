@@ -3,6 +3,7 @@ package com.keyiflerolsun
 import android.util.Log
 import com.lagradost.cloudstream3.DubStatus
 import com.lagradost.cloudstream3.Episode
+import com.lagradost.cloudstream3.HomePageList
 import com.lagradost.cloudstream3.HomePageResponse
 import com.lagradost.cloudstream3.LiveStreamLoadResponse
 import com.lagradost.cloudstream3.LoadResponse
@@ -38,9 +39,72 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONException
 import org.json.JSONObject
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.runBlocking
 
 class InatBox : MainAPI() {
-    private val contentUrl = "https://static.staticsave.com/fast/ct.js"
+    companion object {
+        private const val DEFAULT_CONTENT_URL = "https://static.staticsave.com/fast/ct.js"
+        private const val DOMAIN_SOURCE_URL =
+            "https://raw.githubusercontent.com/mtlshash/cert/main/hash"
+        private const val MASTER_AES_KEY = "ywevqtjrurkwtqgz"
+
+        private fun decryptAes(cipherText: String, key: String): String {
+            val keyBytes = key.trim().toByteArray(Charsets.UTF_8)
+            require(keyBytes.size == 16 || keyBytes.size == 24 || keyBytes.size == 32) {
+                "Geçersiz AES anahtar uzunluğu: ${keyBytes.size}"
+            }
+
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+            cipher.init(
+                Cipher.DECRYPT_MODE,
+                SecretKeySpec(keyBytes, "AES"),
+                IvParameterSpec(keyBytes)
+            )
+            return String(
+                cipher.doFinal(Base64.decode(cipherText.trim(), Base64.DEFAULT)),
+                Charsets.UTF_8
+            )
+        }
+
+        private fun resolveContentUrl(): String = runBlocking {
+            runCatching {
+                val encryptedDomainList = app.get(DOMAIN_SOURCE_URL).text
+                    .replace("-----BEGIN CERTIFICATE-----", "")
+                    .replace("-----END CERTIFICATE-----", "")
+                    .trim()
+
+                val firstParts = encryptedDomainList.split(":", limit = 2)
+                require(firstParts.size == 2)
+
+                val firstDecoded = decryptAes(
+                    firstParts[0],
+                    firstParts[1]
+                )
+
+                val secondParts = firstDecoded.split(":", limit = 2)
+                require(secondParts.size == 2)
+
+                val domainJson = decryptAes(
+                    secondParts[0],
+                    secondParts[1]
+                )
+
+                JSONObject(domainJson)
+                    .optString("DC10")
+                    .takeIf { it.startsWith("http://") || it.startsWith("https://") }
+                    ?: DEFAULT_CONTENT_URL
+            }.getOrElse {
+                Log.e("InatBox", "Dinamik içerik adresi alınamadı: ${it.message}")
+                DEFAULT_CONTENT_URL
+            }
+        }
+    }
+
+    private val contentUrl = resolveContentUrl()
 
     override var name = "InatBox"
     override val hasMainPage = true
@@ -50,97 +114,105 @@ class InatBox : MainAPI() {
     override var sequentialMainPage = false
 
     private val urlToSearchResponse = mutableMapOf<String, SearchResponse>()
-    private val aesKey = "ywevqtjrurkwtqgz" //Master secret and iv key
+    private val aesKey = MASTER_AES_KEY
 
     override val mainPage = mainPageOf(
         contentUrl to "İnatBox"
     )
 
     override suspend fun getMainPage(page: Int, request: MainPageRequest): HomePageResponse {
-        val mainResponse = runCatching { app.get(request.data) }.getOrNull()
-            ?: return newHomePageResponse(request.name, emptyList())
+        val homePageLists = fetchHomePageLists(request.data)
+        return newHomePageResponse(homePageLists)
+    }
 
-        if (!mainResponse.isSuccessful) {
-            return newHomePageResponse(request.name, emptyList())
-        }
+    private suspend fun fetchHomePageLists(url: String): List<HomePageList> {
+        val mainResponse = runCatching { app.get(url) }.getOrNull()
+            ?: return emptyList()
 
-        val encrypted = mainResponse.text
-        val parts = encrypted.split(":", limit = 2)
-        val responseKey = parts.getOrNull(1)?.trim().orEmpty().ifBlank { aesKey }
-        val categoriesJson = getJsonFromEncryptedInatResponse(encrypted, responseKey)
-            ?: return newHomePageResponse(request.name, emptyList())
+        if (!mainResponse.isSuccessful) return emptyList()
 
-        val allResults = mutableListOf<SearchResponse>()
+        val categoriesJson = getJsonFromEncryptedInatResponse(mainResponse.text)
+            ?: return emptyList()
+
         val categories = runCatching { JSONArray(categoriesJson) }.getOrNull()
-            ?: return newHomePageResponse(request.name, emptyList())
+            ?: return emptyList()
 
-        for (index in 0 until categories.length()) {
-            val category = categories.optJSONObject(index) ?: continue
-            val categoryName = category.optString("catName")
-            val categoryType = category.optString("catType")
-            val categoryUrl = category.optString("catUrl")
+        val filteredCategories = buildList {
+            for (index in 0 until categories.length()) {
+                val category = categories.optJSONObject(index) ?: continue
+                val categoryName = category.optString("catName")
+                val categoryType = category.optString("catType")
+                val categoryUrl = category.optString("catUrl")
 
-            if (categoryUrl.isBlank() ||
-                categoryType.equals("link", ignoreCase = true) ||
-                categoryType.equals("destek", ignoreCase = true) ||
-                categoryName.equals("Hata Bildir", ignoreCase = true) ||
-                categoryName.equals("Derbiler", ignoreCase = true) ||
-                categoryUrl.contains("4k-film-exo.php", ignoreCase = true) ||
-                categoryUrl.contains("destek_mode", ignoreCase = true) ||
-                categoryUrl.contains("inattv", ignoreCase = true) ||
-                categoryUrl.contains("x.com/", ignoreCase = true)
-            ) continue
+                if (categoryUrl.isBlank() ||
+                    categoryType.equals("link", ignoreCase = true) ||
+                    categoryType.equals("destek", ignoreCase = true) ||
+                    categoryName.equals("Hata Bildir", ignoreCase = true) ||
+                    categoryName.equals("Derbiler", ignoreCase = true) ||
+                    categoryUrl.contains("4k-film-exo.php", ignoreCase = true) ||
+                    categoryUrl.contains("destek_mode", ignoreCase = true) ||
+                    categoryUrl.contains("inattv", ignoreCase = true) ||
+                    categoryUrl.contains("x.com/", ignoreCase = true)
+                ) {
+                    continue
+                }
 
-            val categoryKey = category.optString("catSha").ifBlank { aesKey }
-            val categoryJson = runCatching {
-                makeInatRequestWithKey(categoryUrl, categoryKey)
-            }.getOrNull() ?: continue
-
-            allResults += getSearchResponseList(categoryJson)
+                add(category)
+            }
         }
 
-        val uniqueResults = allResults.distinctBy { "${it.name}|${it.url}" }
-        uniqueResults.forEach { urlToSearchResponse[it.url] = it }
-        return newHomePageResponse(request.name, uniqueResults)
+        return coroutineScope {
+            filteredCategories.map { category ->
+                async(Dispatchers.IO) {
+                    runCatching {
+                        val categoryUrl = category.optString("catUrl")
+                        val categoryJson = makeInatRequest(categoryUrl) ?: return@runCatching null
+                        val results = getSearchResponseList(categoryJson)
+                        if (results.isEmpty()) return@runCatching null
+
+                        results.forEach { result ->
+                            urlToSearchResponse.putIfAbsent(result.url, result)
+                        }
+
+                        val categoryType = category.optString("catType").lowercase()
+                        val categoryName = category.optString("catName", "İsimsiz")
+                        val lowerName = categoryName.lowercase()
+                        val isLiveCategory =
+                            categoryType.contains("live") ||
+                            categoryType.contains("iptv") ||
+                            categoryType.contains("tv") ||
+                            categoryType.contains("tv_mode") ||
+                            lowerName.contains("canlı") ||
+                            lowerName.contains("spor")
+
+                        HomePageList(
+                            categoryName,
+                            results,
+                            isHorizontalImages = isLiveCategory
+                        )
+                    }.getOrNull()
+                }
+            }.awaitAll().filterNotNull()
+        }
     }
 
     override suspend fun search(query: String): List<SearchResponse> {
         if (urlToSearchResponse.isEmpty()) {
-            for (pageData in mainPage) {
-                val url = pageData.data
-                val jsonResponse = makeInatRequest(url) ?: continue
-
-                val searchResults = getSearchResponseList(jsonResponse)
-
-                for (searchResponse in searchResults) {
-                    val contentUrl = searchResponse.url
-                    if (!urlToSearchResponse.containsKey(contentUrl)) {
-                        urlToSearchResponse[contentUrl] = searchResponse
-                    }
-                }
-            }
+            runCatching { fetchHomePageLists(contentUrl) }
         }
 
-        val matchingResults = mutableListOf<SearchResponse>()
-
-        val regex = try {
+        val regex = runCatching {
             Regex(query, RegexOption.IGNORE_CASE)
-        } catch (_: Exception) {
+        }.getOrElse {
             Regex(Regex.escape(query), RegexOption.IGNORE_CASE)
         }
 
-        for ((_, searchResponse) in urlToSearchResponse) {
-            if (regex.containsMatchIn(searchResponse.name)) {
-                matchingResults.add(searchResponse)
-            }
-        }
-
-        return matchingResults.distinctBy { it.name }
+        return urlToSearchResponse.values
+            .filter { regex.containsMatchIn(it.name) }
+            .distinctBy { it.name }
     }
 
-    override suspend fun quickSearch(query: String): List<SearchResponse> {
-        return search(query)
-    }
+    override suspend fun quickSearch(query: String): List<SearchResponse> = search(query)
 
     override suspend fun load(url: String): LoadResponse? {
         val item = JSONObject(url)
@@ -512,35 +584,33 @@ class InatBox : MainAPI() {
         }
     }
 
-    private fun getJsonFromEncryptedInatResponse(response: String, key: String = aesKey): String? {
-        try {
-            val algorithm = "AES/CBC/PKCS5Padding"
-            val keyBytes = key.toByteArray()
-            val keySpec = SecretKeySpec(keyBytes, "AES")
+    private fun getJsonFromEncryptedInatResponse(
+        response: String,
+        key: String = aesKey
+    ): String? {
+        return runCatching {
+            val outerParts = response.trim().split(":", limit = 2)
+            val encryptedData = outerParts[0].trim()
+            val outerKey = outerParts.getOrNull(1)
+                ?.trim()
+                ?.takeIf { it.isNotBlank() }
+                ?: key
 
-            // First decryption iteration
-            val cipher1 = Cipher.getInstance(algorithm)
-            cipher1.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(keyBytes))
-            val firstIterationData =
-                cipher1.doFinal(Base64.decode(response.split(":")[0], Base64.DEFAULT))
+            val firstDecoded = decryptAes(encryptedData, outerKey).trim()
+            if (firstDecoded.isBlank()) return null
 
-            // Second decryption iteration
-            val cipher2 = Cipher.getInstance(algorithm)
-            cipher2.init(Cipher.DECRYPT_MODE, keySpec, IvParameterSpec(keyBytes))
-            val secondIterationData = cipher2.doFinal(
-                Base64.decode(
-                    String(firstIterationData).split(":")[0],
-                    Base64.DEFAULT
-                )
-            )
-
-            // Parse JSON
-            val jsonString = String(secondIterationData)
-            return jsonString
-        } catch (e: Exception) {
-            Log.e("InatBox", "Decryption failed: ${e.message}")
-            return null
-        }
+            val innerParts = firstDecoded.split(":", limit = 2)
+            if (innerParts.size == 2) {
+                decryptAes(
+                    innerParts[0].trim(),
+                    innerParts[1].trim()
+                ).trim()
+            } else {
+                firstDecoded
+            }
+        }.onFailure {
+            Log.e("InatBox", "Şifre çözme başarısız: ${it.message}")
+        }.getOrNull()
     }
 
     private fun getSearchResponseList(jsonResponse: String): List<SearchResponse> {
