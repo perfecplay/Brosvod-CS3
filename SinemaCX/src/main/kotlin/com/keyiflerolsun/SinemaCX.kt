@@ -11,7 +11,7 @@ import com.fasterxml.jackson.annotation.JsonProperty
 
 class SinemaCX : MainAPI() {
     override var mainUrl              = "https://www.sinema.gg"
-    override var name                 = "SinemaCX"
+    override var name                 = "Brosvod • SinemaCX"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

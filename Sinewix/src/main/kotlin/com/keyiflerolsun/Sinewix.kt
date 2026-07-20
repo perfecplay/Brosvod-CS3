@@ -9,7 +9,7 @@ import com.lagradost.nicehttp.NiceResponse
 
 class Sinewix : MainAPI() {
     override var mainUrl = "https://ydfvfdizipanel.ru"
-    override var name = "Sinewix"
+    override var name = "Brosvod • Sinewix"
     override val hasMainPage = true
     override var lang = "tr"
     override val hasQuickSearch = true

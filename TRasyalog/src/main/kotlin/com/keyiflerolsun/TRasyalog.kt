@@ -7,7 +7,7 @@ import org.jsoup.nodes.Element
 
 class TRasyalog : MainAPI() {
     override var mainUrl        = "https://asyalog.co"
-    override var name           = "AsyaLog"
+    override var name           = "Brosvod • AsyaLog"
     override val hasMainPage    = true
     override var lang           = "tr"
     override val hasQuickSearch = false

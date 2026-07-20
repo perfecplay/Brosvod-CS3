@@ -12,7 +12,7 @@ import org.jsoup.Jsoup
 
 class Watch2Movies : MainAPI() {
     override var mainUrl              = "https://movies2watch.watch"
-    override var name                 = "Watch2Movies"
+    override var name                 = "Brosvod • Watch2Movies"
     override val hasMainPage          = true
     override var lang                 = "en"
     override val hasQuickSearch       = false

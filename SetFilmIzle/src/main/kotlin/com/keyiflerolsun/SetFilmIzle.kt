@@ -14,7 +14,7 @@ import okhttp3.*
 
 class SetFilmIzle : MainAPI() {
     override var mainUrl              = "https://www.setfilmizle.uk"
-    override var name                 = "SetFilmIzle"
+    override var name                 = "Brosvod • SetFilmIzle"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

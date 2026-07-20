@@ -10,7 +10,7 @@ import com.lagradost.cloudstream3.utils.*
 
 class AsyaAnimeleri : MainAPI() {
     override var mainUrl              = "https://asyaanimeleri.top"
-    override var name                 = "AsyaAnimeleri"
+    override var name                 = "Brosvod • AsyaAnimeleri"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

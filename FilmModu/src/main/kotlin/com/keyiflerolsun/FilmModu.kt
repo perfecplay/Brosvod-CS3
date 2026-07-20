@@ -11,7 +11,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 
 class FilmModu : MainAPI() {
     override var mainUrl              = "https://www.filmmodu.one"
-    override var name                 = "FilmModu"
+    override var name                 = "Brosvod • FilmModu"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

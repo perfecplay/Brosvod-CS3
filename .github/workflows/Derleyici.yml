@@ -54,6 +54,27 @@ jobs:
           cd "$GITHUB_WORKSPACE/src"
           chmod +x gradlew
           ./gradlew make makePluginsJson
+
+          # Uygulamada görünen eklenti adlarını Brosvod olarak işaretle.
+          # internalName alanına dokunulmaz; mevcut kurulumlar çoğalmaz.
+          python - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("build/plugins.json")
+          plugins = json.loads(path.read_text(encoding="utf-8"))
+
+          for plugin in plugins:
+              name = str(plugin.get("name", "")).strip()
+              if name and not name.startswith("Brosvod • "):
+                  plugin["name"] = f"Brosvod • {name}"
+
+          path.write_text(
+              json.dumps(plugins, ensure_ascii=False, indent=4) + "\n",
+              encoding="utf-8",
+          )
+          PY
+
           cp */build/*.cs3 "$GITHUB_WORKSPACE/builds/"
           cp build/plugins.json "$GITHUB_WORKSPACE/builds/plugins.json"
           cp repo.json "$GITHUB_WORKSPACE/builds/repo.json"

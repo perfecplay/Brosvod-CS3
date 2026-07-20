@@ -11,7 +11,7 @@ import java.io.InputStream
 
 class CanliTV : MainAPI() {
     override var mainUrl              = "https://raw.githubusercontent.com/feroxx/test/refs/heads/main/Kanallar/canlitv.m3u"
-    override var name                 = "CanliTV"
+    override var name                 = "Brosvod • CanliTV"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = true

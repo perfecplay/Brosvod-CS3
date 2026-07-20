@@ -9,7 +9,7 @@ import org.jsoup.nodes.Element
 
 class Tlctr : MainAPI() {
     override var mainUrl              = "https://www.tlctv.com.tr"
-    override var name                 = "TLCtr"
+    override var name                 = "Brosvod • TLCtr"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

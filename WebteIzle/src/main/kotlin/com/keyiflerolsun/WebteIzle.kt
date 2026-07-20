@@ -38,7 +38,7 @@ import java.net.URLEncoder
 
 class WebteIzle : MainAPI() {
     override var mainUrl              = "https://webteizle3.xyz"
-    override var name                 = "WebteIzle"
+    override var name                 = "Brosvod • WebteIzle"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

@@ -10,7 +10,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 
 class AnimeciX : MainAPI() {
     override var mainUrl              = "https://animecix.tv"
-    override var name                 = "AnimeciX"
+    override var name                 = "Brosvod • AnimeciX"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

@@ -9,7 +9,7 @@ import com.lagradost.cloudstream3.utils.*
 
 class AltiYuzAltmisAltiFilmIzle : MainAPI() {
     override var mainUrl              = "https://666filmizle.site"
-    override var name                 = "666FilmIzle"
+    override var name                 = "Brosvod • 666FilmIzle"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = true

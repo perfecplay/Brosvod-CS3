@@ -18,7 +18,7 @@ import okhttp3.Response
 
 class FilmBip : MainAPI() {
     override var mainUrl              = "https://filmbip.com"
-    override var name                 = "FilmBip"
+    override var name                 = "Brosvod • FilmBip"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

@@ -1,0 +1,378 @@
+{
+  "providers_renamed": 37,
+  "versions_bumped": 37,
+  "name_changes": [
+    [
+      "AltiYuzAltmisAltiFilmIzle/src/main/kotlin/com/keyiflerolsun/AltiYuzAltmisAltiFilmIzle.kt",
+      "666FilmIzle",
+      "Brosvod • 666FilmIzle"
+    ],
+    [
+      "AnimeciX/src/main/kotlin/com/keyiflerolsun/AnimeciX.kt",
+      "AnimeciX",
+      "Brosvod • AnimeciX"
+    ],
+    [
+      "AsyaAnimeleri/src/main/kotlin/com/keyiflerolsun/AsyaAnimeleri.kt",
+      "AsyaAnimeleri",
+      "Brosvod • AsyaAnimeleri"
+    ],
+    [
+      "BelgeselX/src/main/kotlin/com/keyiflerolsun/BelgeselX.kt",
+      "BelgeselX",
+      "Brosvod • BelgeselX"
+    ],
+    [
+      "CanliTV/src/main/kotlin/com/keyiflerolsun/CanliTV.kt",
+      "CanliTV",
+      "Brosvod • CanliTV"
+    ],
+    [
+      "CizgiMax/src/main/kotlin/com/keyiflerolsun/CizgiMax.kt",
+      "ÇizgiMax",
+      "Brosvod • ÇizgiMax"
+    ],
+    [
+      "Ddizi/src/main/kotlin/com/keyiflerolsun/DDizi.kt",
+      "DDizi",
+      "Brosvod • DDizi"
+    ],
+    [
+      "DiziBox/src/main/kotlin/com/keyiflerolsun/DiziBox.kt",
+      "DiziBox",
+      "Brosvod • DiziBox"
+    ],
+    [
+      "DiziKorea/src/main/kotlin/com/keyiflerolsun/DiziKorea.kt",
+      "DiziKorea",
+      "Brosvod • DiziKorea"
+    ],
+    [
+      "DiziMom/src/main/kotlin/com/keyiflerolsun/DiziMom.kt",
+      "DiziMom",
+      "Brosvod • DiziMom"
+    ],
+    [
+      "DiziPal/src/main/kotlin/com/keyiflerolsun/DiziPal.kt",
+      "DiziPal",
+      "Brosvod • DiziPal"
+    ],
+    [
+      "DiziPalOriginal/src/main/kotlin/com/keyiflerolsun/DiziPalOriginal.kt",
+      "DiziPalOriginal",
+      "Brosvod • DiziPalOriginal"
+    ],
+    [
+      "DiziYou/src/main/kotlin/com/keyiflerolsun/DiziYou.kt",
+      "DiziYou",
+      "Brosvod • DiziYou"
+    ],
+    [
+      "Dizilla/src/main/kotlin/com/keyiflerolsun/Dizilla.kt",
+      "Dizilla",
+      "Brosvod • Dizilla"
+    ],
+    [
+      "FilmBip/src/main/kotlin/com/keyiflerolsun/FilmBip.kt",
+      "FilmBip",
+      "Brosvod • FilmBip"
+    ],
+    [
+      "FilmMakinesi/src/main/kotlin/com/keyiflerolsun/FilmMakinesi.kt",
+      "FilmMakinesi",
+      "Brosvod • FilmMakinesi"
+    ],
+    [
+      "FilmModu/src/main/kotlin/com/keyiflerolsun/FilmModu.kt",
+      "FilmModu",
+      "Brosvod • FilmModu"
+    ],
+    [
+      "FullHDFilm/src/main/kotlin/com/keyiflerolsun/FullHDFilm.kt",
+      "FullHDFilm",
+      "Brosvod • FullHDFilm"
+    ],
+    [
+      "FullHDFilmizlesene/src/main/kotlin/com/keyiflerolsun/FullHDFilmizlesene.kt",
+      "FullHDFilmizlesene",
+      "Brosvod • FullHDFilmizlesene"
+    ],
+    [
+      "HDFilmCehennemi/src/main/kotlin/com/keyiflerolsun/HDFilmCehennemi.kt",
+      "HDFilmCehennemi",
+      "Brosvod • HDFilmCehennemi"
+    ],
+    [
+      "InatBox/src/main/kotlin/com/keyiflerolsun/InatBox.kt",
+      "InatBox",
+      "Brosvod • InatBox"
+    ],
+    [
+      "JetFilmizle/src/main/kotlin/com/keyiflerolsun/JetFilmizle.kt",
+      "JetFilmizle",
+      "Brosvod • JetFilmizle"
+    ],
+    [
+      "KoreanTurk/src/main/kotlin/com/keyiflerolsun/KoreanTurk.kt",
+      "KoreanTurk",
+      "Brosvod • KoreanTurk"
+    ],
+    [
+      "KultFilmler/src/main/kotlin/com/keyiflerolsun/KultFilmler.kt",
+      "KultFilmler",
+      "Brosvod • KultFilmler"
+    ],
+    [
+      "RareFilmm/src/main/kotlin/com/keyiflerolsun/RareFilmm.kt",
+      "RareFilmm",
+      "Brosvod • RareFilmm"
+    ],
+    [
+      "RecTV/src/main/kotlin/com/keyiflerolsun/RecTV.kt",
+      "RecTV",
+      "Brosvod • RecTV"
+    ],
+    [
+      "SetFilmIzle/src/main/kotlin/com/keyiflerolsun/SetFilmIzle.kt",
+      "SetFilmIzle",
+      "Brosvod • SetFilmIzle"
+    ],
+    [
+      "SezonlukDizi/src/main/kotlin/com/keyiflerolsun/SezonlukDizi.kt",
+      "SezonlukDizi",
+      "Brosvod • SezonlukDizi"
+    ],
+    [
+      "SinemaCX/src/main/kotlin/com/keyiflerolsun/SinemaCX.kt",
+      "SinemaCX",
+      "Brosvod • SinemaCX"
+    ],
+    [
+      "Sinewix/src/main/kotlin/com/keyiflerolsun/Sinewix.kt",
+      "Sinewix",
+      "Brosvod • Sinewix"
+    ],
+    [
+      "TLCtr/src/main/kotlin/com/keyiflerolsun/TLCtr.kt",
+      "TLCtr",
+      "Brosvod • TLCtr"
+    ],
+    [
+      "TRanimaci/src/main/kotlin/com/keyiflerolsun/TRanimaci.kt",
+      "TrAnimeci",
+      "Brosvod • TrAnimeci"
+    ],
+    [
+      "TRasyalog/src/main/kotlin/com/keyiflerolsun/TRasyalog.kt",
+      "AsyaLog",
+      "Brosvod • AsyaLog"
+    ],
+    [
+      "TurkAnime/src/main/kotlin/com/keyiflerolsun/TurkAnime.kt",
+      "TurkAnime",
+      "Brosvod • TurkAnime"
+    ],
+    [
+      "UgurFilm/src/main/kotlin/com/keyiflerolsun/UgurFilm.kt",
+      "UgurFilm",
+      "Brosvod • UgurFilm"
+    ],
+    [
+      "Watch2Movies/src/main/kotlin/com/keyiflerolsun/Watch2Movies.kt",
+      "Watch2Movies",
+      "Brosvod • Watch2Movies"
+    ],
+    [
+      "WebteIzle/src/main/kotlin/com/keyiflerolsun/WebteIzle.kt",
+      "WebteIzle",
+      "Brosvod • WebteIzle"
+    ]
+  ],
+  "version_changes": [
+    [
+      "AltiYuzAltmisAltiFilmIzle/build.gradle.kts",
+      1,
+      2
+    ],
+    [
+      "AnimeciX/build.gradle.kts",
+      21,
+      22
+    ],
+    [
+      "AsyaAnimeleri/build.gradle.kts",
+      1,
+      2
+    ],
+    [
+      "BelgeselX/build.gradle.kts",
+      16,
+      17
+    ],
+    [
+      "CanliTV/build.gradle.kts",
+      10,
+      11
+    ],
+    [
+      "CizgiMax/build.gradle.kts",
+      14,
+      15
+    ],
+    [
+      "Ddizi/build.gradle.kts",
+      22,
+      23
+    ],
+    [
+      "DiziBox/build.gradle.kts",
+      23,
+      24
+    ],
+    [
+      "DiziKorea/build.gradle.kts",
+      41,
+      42
+    ],
+    [
+      "DiziMom/build.gradle.kts",
+      52,
+      53
+    ],
+    [
+      "DiziPal/build.gradle.kts",
+      100,
+      101
+    ],
+    [
+      "DiziPalOriginal/build.gradle.kts",
+      75,
+      76
+    ],
+    [
+      "DiziYou/build.gradle.kts",
+      25,
+      26
+    ],
+    [
+      "Dizilla/build.gradle.kts",
+      92,
+      93
+    ],
+    [
+      "FilmBip/build.gradle.kts",
+      19,
+      20
+    ],
+    [
+      "FilmMakinesi/build.gradle.kts",
+      58,
+      59
+    ],
+    [
+      "FilmModu/build.gradle.kts",
+      19,
+      20
+    ],
+    [
+      "FullHDFilm/build.gradle.kts",
+      36,
+      37
+    ],
+    [
+      "FullHDFilmizlesene/build.gradle.kts",
+      30,
+      31
+    ],
+    [
+      "HDFilmCehennemi/build.gradle.kts",
+      48,
+      49
+    ],
+    [
+      "InatBox/build.gradle.kts",
+      61,
+      62
+    ],
+    [
+      "JetFilmizle/build.gradle.kts",
+      47,
+      48
+    ],
+    [
+      "KoreanTurk/build.gradle.kts",
+      7,
+      8
+    ],
+    [
+      "KultFilmler/build.gradle.kts",
+      15,
+      16
+    ],
+    [
+      "RareFilmm/build.gradle.kts",
+      3,
+      4
+    ],
+    [
+      "RecTV/build.gradle.kts",
+      106,
+      107
+    ],
+    [
+      "SetFilmIzle/build.gradle.kts",
+      29,
+      30
+    ],
+    [
+      "SezonlukDizi/build.gradle.kts",
+      9,
+      10
+    ],
+    [
+      "SinemaCX/build.gradle.kts",
+      24,
+      25
+    ],
+    [
+      "Sinewix/build.gradle.kts",
+      2,
+      3
+    ],
+    [
+      "TLCtr/build.gradle.kts",
+      19,
+      20
+    ],
+    [
+      "TRanimaci/build.gradle.kts",
+      17,
+      18
+    ],
+    [
+      "TRasyalog/build.gradle.kts",
+      65,
+      66
+    ],
+    [
+      "TurkAnime/build.gradle.kts",
+      14,
+      15
+    ],
+    [
+      "UgurFilm/build.gradle.kts",
+      13,
+      14
+    ],
+    [
+      "Watch2Movies/build.gradle.kts",
+      6,
+      7
+    ],
+    [
+      "WebteIzle/build.gradle.kts",
+      17,
+      18
+    ]
+  ]
+}

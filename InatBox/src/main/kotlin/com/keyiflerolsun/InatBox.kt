@@ -118,7 +118,7 @@ class InatBox : MainAPI() {
 
     private val contentUrl = resolveContentUrl()
 
-    override var name = "InatBox"
+    override var name = "Brosvod • InatBox"
     override val hasMainPage = true
     override var lang = "tr"
     override val hasQuickSearch = true

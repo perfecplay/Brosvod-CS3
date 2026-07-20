@@ -12,7 +12,7 @@ import com.lagradost.cloudstream3.extractors.helper.AesHelper
 
 class TurkAnime : MainAPI() {
     override var mainUrl              = "https://www.turkanime.tv"
-    override var name                 = "TurkAnime"
+    override var name                 = "Brosvod • TurkAnime"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

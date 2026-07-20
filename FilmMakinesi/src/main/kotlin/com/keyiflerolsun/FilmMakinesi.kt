@@ -13,7 +13,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addTrailer
 
 class FilmMakinesi : MainAPI() {
     override var mainUrl              = "https://filmmakinesi.to"
-    override var name                 = "FilmMakinesi"
+    override var name                 = "Brosvod • FilmMakinesi"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

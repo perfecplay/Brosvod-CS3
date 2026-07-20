@@ -10,7 +10,7 @@ import com.lagradost.cloudstream3.LoadResponse.Companion.addActors
 
 class UgurFilm : MainAPI() {
     override var mainUrl              = "https://ugurfilm3.xyz"
-    override var name                 = "UgurFilm"
+    override var name                 = "Brosvod • UgurFilm"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

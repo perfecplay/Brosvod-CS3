@@ -12,7 +12,7 @@ import java.util.regex.Pattern
 
 class FullHDFilm : MainAPI() {
     override var mainUrl              = "https://hdfilm.us"
-    override var name                 = "FullHDFilm"
+    override var name                 = "Brosvod • FullHDFilm"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

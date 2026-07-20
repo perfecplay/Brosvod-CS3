@@ -19,7 +19,7 @@ import java.util.regex.Pattern
 
 class KultFilmler : MainAPI() {
     override var mainUrl              = "https://kultfilmler.net"
-    override var name                 = "KultFilmler"
+    override var name                 = "Brosvod • KultFilmler"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false

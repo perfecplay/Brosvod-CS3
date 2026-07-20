@@ -10,7 +10,7 @@ import kotlin.random.Random
 
 class KoreanTurk : MainAPI() {
     override var mainUrl              = "https://www.koreanturk.net"
-    override var name                 = "KoreanTurk"
+    override var name                 = "Brosvod • KoreanTurk"
     override val hasMainPage          = true
     override var lang                 = "tr"
     override val hasQuickSearch       = false
