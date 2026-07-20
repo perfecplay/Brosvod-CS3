@@ -53,7 +53,19 @@ class InatBox : MainAPI() {
         private const val MASTER_AES_KEY = "ywevqtjrurkwtqgz"
 
         private fun decryptAes(cipherText: String, key: String): String {
-            val keyBytes = key.trim().toByteArray(Charsets.UTF_8)
+            val cleanKey = key.trim()
+
+            // Çalışan InatBox sürümü AES anahtarını da Base64'ten çözüyor.
+            // Eski cevaplar ham 16/24/32 bayt anahtar döndürebildiği için
+            // yalnızca geçerli boyuttaki Base64 sonucu kabul edip ham anahtara düşüyoruz.
+            val decodedKey = runCatching {
+                Base64.decode(cleanKey, Base64.DEFAULT)
+            }.getOrNull()
+
+            val keyBytes = decodedKey
+                ?.takeIf { it.size == 16 || it.size == 24 || it.size == 32 }
+                ?: cleanKey.toByteArray(Charsets.UTF_8)
+
             require(keyBytes.size == 16 || keyBytes.size == 24 || keyBytes.size == 32) {
                 "Geçersiz AES anahtar uzunluğu: ${keyBytes.size}"
             }
@@ -111,6 +123,7 @@ class InatBox : MainAPI() {
     override var lang = "tr"
     override val hasQuickSearch = true
     override val supportedTypes = setOf(TvType.Movie, TvType.TvSeries, TvType.Live)
+    override val getMainPageTimeoutMs = 25_000L
     override var sequentialMainPage = false
 
     private val urlToSearchResponse = mutableMapOf<String, SearchResponse>()
