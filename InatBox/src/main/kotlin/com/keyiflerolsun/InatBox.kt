@@ -477,74 +477,120 @@ class InatBox : MainAPI() {
         )
     }
 
+    private fun playbackHeaders(chContent: ChContent): MutableMap<String, String> {
+        val headers = mutableMapOf<String, String>()
+
+        runCatching {
+            if (chContent.chHeaders != "null") {
+                val jsonHeaders = JSONArray(chContent.chHeaders).optJSONObject(0)
+                if (jsonHeaders != null) {
+                    for (entry in jsonHeaders.keys()) {
+                        val headerName = when (entry) {
+                            "UserAgent" -> "User-Agent"
+                            "XRequestedWith" -> "X-Requested-With"
+                            else -> entry
+                        }
+                        headers[headerName] = jsonHeaders.optString(entry)
+                    }
+                }
+            }
+
+            if (chContent.chReg != "null") {
+                val jsonReg = JSONArray(chContent.chReg).optJSONObject(0)
+                jsonReg?.optString("playSH2")
+                    ?.takeIf { it.isNotBlank() }
+                    ?.let { headers["Cookie"] = it }
+            }
+        }.onFailure {
+            Log.w("InatBox", "Oynatma başlıkları okunamadı: ${it.message}")
+        }
+
+        return headers
+    }
+
+    private fun isDirectStream(url: String): Boolean {
+        return url.contains(".m3u8", ignoreCase = true) ||
+            url.contains(".mpd", ignoreCase = true) ||
+            url.contains(".mp4", ignoreCase = true) ||
+            url.contains(".mkv", ignoreCase = true) ||
+            url.contains(".webm", ignoreCase = true)
+    }
+
     private suspend fun loadChContentLinks(
         chContent: ChContent,
         subtitleCallback: (SubtitleFile) -> Unit,
         callback: (ExtractorLink) -> Unit
     ) {
-        val chType = chContent.chType
-        val contentToProcess: ChContent
+        val contentToProcess = if (
+            chContent.chType.contains("tekli_regex_lb_sh_3", ignoreCase = true)
+        ) {
+            val regexKey = runCatching {
+                if (chContent.chReg == "null") {
+                    aesKey
+                } else {
+                    JSONArray(chContent.chReg)
+                        .optJSONObject(0)
+                        ?.optString("Regex1", aesKey)
+                        ?.takeIf { it.isNotBlank() }
+                        ?: aesKey
+                }
+            }.getOrDefault(aesKey)
 
-        if (chType == "tekli_regex_lb_sh_3") {
-            val name = chContent.chName
-            val url = chContent.chUrl
-            val posterUrl = chContent.chImg
-            val headers = chContent.chHeaders
-            val reg = chContent.chReg
-            val type = chContent.chType
+            // Yeni listelerde tür "tekli_regex_lb_sh_3_mode" geliyor. Eski kod
+            // yalnızca birebir "tekli_regex_lb_sh_3" eşleşmesini kabul ettiği için
+            // şifreli Filmizleeeee adresi doğrudan extractora gönderiliyordu.
+            val jsonResponse = makeInatRequestWithKey(chContent.chUrl, regexKey)
+                ?: runCatching {
+                    val encryptedResponse = app.get(chContent.chUrl).text
+                    getJsonFromEncryptedInatResponse(encryptedResponse, regexKey)
+                }.getOrNull()
+                ?: return
 
-            val jsonResponse = runCatching { makeInatRequest(url) }.getOrNull()
-                ?: getJsonFromEncryptedInatResponse(app.get(url).body.string()) ?: return
-            val firstItem = JSONObject(jsonResponse)
-            firstItem.put("chHeaders", headers)
-            firstItem.put("chReg", reg)
-            firstItem.put("chName", name)
-            firstItem.put("chImg", posterUrl)
-            firstItem.put("chType", type)
-            contentToProcess = parseToChContent(firstItem)
+            val firstItem = runCatching { JSONObject(jsonResponse) }.getOrNull() ?: return
+            firstItem.put("chHeaders", chContent.chHeaders)
+            firstItem.put("chReg", chContent.chReg)
+            firstItem.put("chName", chContent.chName)
+            firstItem.put("chImg", chContent.chImg)
+            firstItem.put("chType", chContent.chType)
+            parseToChContent(firstItem)
         } else {
-            contentToProcess = chContent
+            chContent
         }
 
         val sourceUrl = contentToProcess.chUrl
+        val headers = playbackHeaders(contentToProcess)
 
-        // Headerları hazırlama kısmı
-        val headers: MutableMap<String, String> = mutableMapOf()
-        try {
-            val chHeaders = contentToProcess.chHeaders
-            val chReg = contentToProcess.chReg
-            if (chHeaders != "null") {
-                val jsonHeaders = JSONArray(chHeaders).getJSONObject(0)
-                for (entry in jsonHeaders.keys()) {
-                    headers[entry] = jsonHeaders[entry].toString()
-                }
-            }
-            if (chReg != "null") {
-                val jsonReg = JSONArray(chReg).getJSONObject(0)
-                val cookie = jsonReg.getString("playSH2")
-                headers["Cookie"] = cookie
-            }
-        } catch (_: Exception) {
-        }
-
-        val extractorFound = if (sourceUrl.contains("dzen.ru")) {
-            loadExtractor(sourceUrl, subtitleCallback, callback)
-        } else {
-            loadExtractor(sourceUrl, subtitleCallback, callback)
-        }
-
-        // Extractor bulunamazsa genel yükleme denemesi
-        if (!extractorFound) {
-            callback.invoke(
+        if (isDirectStream(sourceUrl)) {
+            callback(
                 newExtractorLink(
-                    source = this.name,
+                    source = name,
                     name = contentToProcess.chName,
                     url = sourceUrl,
-                    type = if (sourceUrl.contains(".m3u8")) ExtractorLinkType.M3U8 else if (sourceUrl.contains(".mpd")) ExtractorLinkType.DASH else ExtractorLinkType.VIDEO
+                    type = when {
+                        sourceUrl.contains(".m3u8", ignoreCase = true) -> ExtractorLinkType.M3U8
+                        sourceUrl.contains(".mpd", ignoreCase = true) -> ExtractorLinkType.DASH
+                        else -> ExtractorLinkType.VIDEO
+                    }
                 ) {
-                    // 4. DÜZELTME: 'mapOf("Referer" to headers)' hatalıydı (Map içinde Map).
-                    // Direkt 'headers' değişkenini atıyoruz.
                     this.headers = headers
+                    this.referer = headers["Referer"].orEmpty()
+                    this.quality = Qualities.Unknown.value
+                }
+            )
+            return
+        }
+
+        val extractorFound = loadExtractor(sourceUrl, subtitleCallback, callback)
+        if (!extractorFound) {
+            callback(
+                newExtractorLink(
+                    source = name,
+                    name = contentToProcess.chName,
+                    url = sourceUrl,
+                    type = ExtractorLinkType.VIDEO
+                ) {
+                    this.headers = headers
+                    this.referer = headers["Referer"].orEmpty()
                     this.quality = Qualities.Unknown.value
                 }
             )
