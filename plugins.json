@@ -416,7 +416,7 @@
     {
         "url": "https://raw.githubusercontent.com/perfecplay/Brosvod-CS3/builds/InatBox.cs3",
         "status": 1,
-        "version": 58,
+        "version": 59,
         "name": "InatBox",
         "internalName": "InatBox",
         "authors": [
@@ -424,7 +424,7 @@
             "keyiflerolsun"
         ],
         "description": "\u0130natBox cloudstream eklentisidir. Sevdi\u011finiz yay\u0131n platformlar\u0131n\u0131 ve canl\u0131 ma\u00e7lar\u0131 burada bulabilirsiniz.",
-        "fileSize": 40748,
+        "fileSize": 44104,
         "repositoryUrl": "https://github.com/perfecplay/Brosvod-CS3",
         "language": "tr",
         "tvTypes": [
@@ -434,7 +434,7 @@
         ],
         "iconUrl": "https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh3vCp6N1K4bECoYRQD-cisJF2_6V_Hk01ZhDmoPR2JuM8O5qr4MqrPO1munM9cRlleBBSK6odYhLtDBWv4E3vhPhynlmS5hVVtJZShHoGA5REQ8_3v8SIlccTEqzVQu2UJyNYQdJNrKIfWy66RQeT0D-CcmFCbHPz5023H6p2v5fv4NVloZ5Rqo_yGrIY/s320/iNat-Box-App.png",
         "apiVersion": 1,
-        "fileHash": "sha256-1a0a6efc14d1d5c564247479287957a7f9284c07b44ade66c5a3224a09a33bf5"
+        "fileHash": "sha256-9c036a3d1719dd55e4aa314f10ee65f98421c5d77927d019ca0e018a8c5b32a6"
     },
     {
         "url": "https://raw.githubusercontent.com/perfecplay/Brosvod-CS3/builds/JetFilmizle.cs3",
