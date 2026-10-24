@@ -16,7 +16,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.RequestBody.Companion.toRequestBody
 
 class JetFilmizle : MainAPI() {
-    override var mainUrl              = "https://jetfilmizle.now"
+    override var mainUrl              = "https://jetfilmizle.app"
     override var name                 = "Brosvod • JetFilmizle"
     override val hasMainPage          = true
     override var lang                 = "tr"
